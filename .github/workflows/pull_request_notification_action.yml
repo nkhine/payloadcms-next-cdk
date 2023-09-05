@@ -1,0 +1,50 @@
+name: Slack Notification
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+
+    env:
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+    steps:
+      - name: New Pull Request
+        if: ${{ github.event_name == 'pull_request' && github.event.action != 'synchronize' }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: github
+          SLACK_COLOR: '#00ff00' # Green for new pull request
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_MESSAGE: 'New pull request: *${{ github.event.pull_request.title }}* by @${{ github.actor }}. Link: ${{ github.event.pull_request.html_url }}'
+          SLACK_TITLE: 'New Pull Request'
+          SLACK_USERNAME: GitHub
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Update Pull Request
+        if: ${{ github.event_name == 'pull_request' && github.event.action == 'synchronize' }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: github
+          SLACK_COLOR: '#ffaa00' # Orange for updated pull request
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_MESSAGE: 'Updated pull request: *${{ github.event.pull_request.title }}* by @${{ github.actor }}. Link: ${{ github.event.pull_request.html_url }}'
+          SLACK_TITLE: 'Updated Pull Request'
+          SLACK_USERNAME: GitHub
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Review Approval
+        if: ${{ github.event_name == 'pull_request_review' && github.event.review.state == 'approved' }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: github
+          SLACK_COLOR: '#0000ff' # Blue for approved pull request
+          SLACK_ICON: https://github.com/rtCamp.png?size=48
+          SLACK_MESSAGE: 'Pull request approved: *${{ github.event.pull_request.title }}* by @${{ github.actor }}. Link: ${{ github.event.pull_request.html_url }}'
+          SLACK_TITLE: 'Pull Request Approved'
+          SLACK_USERNAME: GitHub
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
